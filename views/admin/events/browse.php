@@ -1,5 +1,13 @@
 <?php
 echo head(['title' => __('Activity Log Events'), 'bodyclass' => 'browse']);
+$sortLinks = [
+    __('ID') => 'id',
+    __('Date') => 'timestamp',
+    __('User') => null,
+    __('IP') => null,
+    __('Event Name') => 'event',
+    __('Resource') => 'resource',
+];
 ?>
 
 <?php if ($total_results): ?>
@@ -9,12 +17,7 @@ echo head(['title' => __('Activity Log Events'), 'bodyclass' => 'browse']);
     <table id="events">
         <thead>
             <tr>
-                <th><?php echo __('ID'); ?></th>
-                <th><?php echo __('Date'); ?></th>
-                <th><?php echo __('User'); ?></th>
-                <th><?php echo __('IP'); ?></th>
-                <th><?php echo __('Event Name'); ?></th>
-                <th><?php echo __('Resource'); ?></th>
+                <?php echo browse_sort_links($sortLinks, ['link_tag' => 'th scope="col"', 'list_tag' => '']); ?>
             </tr>
         </thead>
         <tbody>
@@ -22,7 +25,7 @@ echo head(['title' => __('Activity Log Events'), 'bodyclass' => 'browse']);
             <?php $user = $event->User; ?>
             <tr>
                 <td><?php echo $event->id; ?></td>
-                <td><?php echo $event->timestamp; ?></td>
+                <td><?php echo $event->getDateTime()->format('Y-m-d<\b\r>H:i:s.v'); ?></td>
                 <td><?php echo $user
                     ? sprintf('%s<br>%s', link_to($user, 'edit', $user->username, ['class'=>'edit']), $user->role)
                     : sprintf('[%s]', __('unknown')); ?></td>

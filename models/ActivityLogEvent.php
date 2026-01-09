@@ -26,4 +26,11 @@ class ActivityLogEvent extends Omeka_Record_AbstractRecord implements Zend_Acl_R
         }
         return $user;
     }
+
+    public function getDateTime()
+    {
+        $dateTime = DateTime::createFromFormat('U.u', sprintf('%f', $this->timestamp));
+        $dateTime->setTimezone(new DateTimeZone(date_default_timezone_get()));
+        return $dateTime;
+    }
 }

@@ -74,15 +74,18 @@ SQL
         $post = $args['post'];
         $insert = $args['insert'];
 
-        // Exclude certain records.
-        $excludeRecords = ['ElementText', 'SearchText'];
-        if (in_array(get_class($record), $excludeRecords)) {
-            return;;
+        if ($this->recordIsExcluded($record)) {
+            return;
         }
 
-        // Resolve to the specific hook name. This allows us to use the generic
-        // "after_save_record" hook to log records.
-        $event = sprintf('after_save_%s', Inflector::underscore(get_class($record)));
+        // Resolve to a specific event name. This allows us to use the generic
+        // "after_save_record" hook to unambiguously log insert and update
+        // events for all records.
+        $event = sprintf(
+            '%s_%s',
+            $insert ? 'insert' : 'update',
+            Inflector::underscore(get_class($record))
+        );
 
         activity_log_log_event(
             $event,
@@ -95,7 +98,22 @@ SQL
     public function hookAfterDeleteRecord($args)
     {
         $record = $args['record'];
-        // @todo
+
+        if ($this->recordIsExcluded($record)) {
+            return;
+        }
+
+        // Resolve to a specific event name. This allows us to use the generic
+        // "after_delete_record" hook to unambiguously log delete events for all
+        // records.
+        $event = sprintf('delete_%s', Inflector::underscore(get_class($record)));
+
+        activity_log_log_event(
+            $event,
+            get_class($record),
+            $record->id,
+            null
+        );
     }
 
     public function filterAdminNavigationMain($nav)
@@ -106,6 +124,18 @@ SQL
             'resource' => ('ActivityLog_Events'),
         ];
         return $nav;
+    }
+
+    /**
+     * Exclude this record from the log?
+     *
+     * @param Omeka_Record_AbstractRecord $record
+     * @return bool
+     */
+    protected function recordIsExcluded($record)
+    {
+        $excludedRecords = ['ElementText', 'SearchText'];
+        return in_array(get_class($record), $excludedRecords);
     }
 }
 
