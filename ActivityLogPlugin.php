@@ -4,8 +4,8 @@ class ActivityLogPlugin extends Omeka_Plugin_AbstractPlugin
     protected $_hooks = array(
         'install',
         'uninstall',
-        // 'config_form',
-        // 'config',
+        'config_form',
+        'config',
         'define_acl',
         'after_save_record',
         'after_delete_record',
@@ -40,46 +40,94 @@ SQL
         $db->query("DROP TABLE IF EXISTS `{$db->prefix}activity_log_events`");
     }
 
-    public function hookConfigForm()
+    public function hookConfigForm($args)
     {
-        // @todo
+        $view = $args['view'];
+        include 'config_form.php';
     }
 
     public function hookConfig($args)
     {
-        // @todo
+        $deleteBefore = $_POST['delete_before'];
+        if (isset($deleteBefore) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $deleteBefore)) {
+            // Delete event rows before delete_before.
+            $db = get_db();
+            $table = $db->getTableName('ActivityLogEvent');
+            $query = "DELETE FROM `$table` WHERE `timestamp` < ?";
+            $dateTime = new DateTime(
+                $deleteBefore,
+                new DateTimeZone(date_default_timezone_get())
+            );
+            $db->getAdapter()->query($query, [$dateTime->getTimestamp()]);
+        }
     }
 
     public function hookDefineAcl($args)
     {
         $acl = $args['acl'];
         $acl->addResource('ActivityLog_Events');
-        $acl->allow(null, 'ActivityLog_Events', array('browse'));
     }
 
     public function hookAfterSaveRecord($args)
     {
-        // @see https://omeka.readthedocs.io/en/latest/Reference/hooks/after_save_record.html
         $record = $args['record'];
         $post = $args['post'];
         $insert = $args['insert'];
-        // @todo
+
+        // Exclude certain records.
+        $excludeRecords = ['ElementText', 'SearchText'];
+        if (in_array(get_class($record), $excludeRecords)) {
+            return;;
+        }
+
+        // Resolve to the specific hook name. This allows us to use the generic
+        // "after_save_record" hook to log records.
+        $event = sprintf('after_save_%s', Inflector::underscore(get_class($record)));
+
+        activity_log_log_event(
+            $event,
+            get_class($record),
+            $record->id,
+            json_encode($post)
+        );
     }
 
     public function hookAfterDeleteRecord($args)
     {
-        // @see https://omeka.readthedocs.io/en/latest/Reference/hooks/after_delete_record.html
         $record = $args['record'];
         // @todo
     }
 
     public function filterAdminNavigationMain($nav)
     {
-        $nav[] = array(
+        $nav[] = [
             'label' => __('Activity Log'),
             'uri' => url('activity-log/events'),
             'resource' => ('ActivityLog_Events'),
-        );
+        ];
         return $nav;
     }
+}
+
+/**
+ * Log an event.
+ *
+ * @param string $event The event name (typically the related hook name)
+ * @param string $resource The resource name
+ * @param string $resource_identifier The resource identifier (if any)
+ * @param string $data The data used to perform the event (if any)
+ */
+function activity_log_log_event($event, $resource, $resource_identifier, $data)
+{
+    $db = get_db();
+    $eventId = $db->insert('ActivityLogEvents', [
+        'user_id' => current_user()->id,
+        'timestamp' => microtime(true),
+        'ip' => $_SERVER['REMOTE_ADDR'],
+        'event' => $event,
+        'resource' => $resource,
+        'resource_identifier' => $resource_identifier,
+        'data' => $data,
+    ]);
+    return $eventId;
 }

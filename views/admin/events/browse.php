@@ -19,10 +19,13 @@ echo head(['title' => __('Activity Log Events'), 'bodyclass' => 'browse']);
         </thead>
         <tbody>
             <?php foreach (loop('ActivityLogEvent') as $event): ?>
+            <?php $user = $event->User; ?>
             <tr>
                 <td><?php echo $event->id; ?></td>
                 <td><?php echo $event->timestamp; ?></td>
-                <td><?php echo $event->user_id; ?></td>
+                <td><?php echo $user
+                    ? sprintf('%s<br>%s', link_to($user, 'edit', $user->username, ['class'=>'edit']), $user->role)
+                    : sprintf('[%s]', __('unknown')); ?></td>
                 <td><?php echo $event->ip; ?></td>
                 <td><?php echo $event->event; ?></td>
                 <td><?php echo $event->resource; ?></td>
