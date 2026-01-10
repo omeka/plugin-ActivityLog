@@ -22,16 +22,26 @@ $sortLinks = [
         </thead>
         <tbody>
             <?php foreach (loop('ActivityLogEvent') as $event): ?>
-            <?php $user = $event->User; ?>
+            <?php
+            $user = $event->User;
+            $record = $event->Record;
+            $resourceText = [$event->resource];
+            if ($event->resource_identifier) {
+                $resourceText[] = sprintf(__('ID: %s'), $event->resource_identifier);
+            }
+            if ($record) {
+                $resourceText[] = link_to($record, null, __('View resource'));
+            }
+            ?>
             <tr>
                 <td><?php echo $event->id; ?></td>
-                <td><?php echo $event->getDateTime()->format('Y-m-d<\b\r>H:i:s.v'); ?></td>
+                <td><?php echo $event->DateTime->format('Y-m-d<\b\r>H:i:s.v'); ?></td>
                 <td><?php echo $user
                     ? sprintf('%s<br>%s', link_to($user, 'edit', $user->username, ['class'=>'edit']), $user->role)
                     : sprintf('[%s]', __('unknown')); ?></td>
                 <td><?php echo $event->ip; ?></td>
                 <td><?php echo $event->event; ?></td>
-                <td><?php echo $event->resource; ?></td>
+                <td><?php echo implode('<br>', $resourceText); ?></td>
             </tr>
             <?php endforeach; ?>
         </tbody>

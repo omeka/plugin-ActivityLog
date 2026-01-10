@@ -11,6 +11,9 @@ class ActivityLogEvent extends Omeka_Record_AbstractRecord implements Zend_Acl_R
 
     protected $_related = [
         'User' => 'getUser',
+        'Record' => 'getRecord',
+        'DateTime' => 'getDateTime',
+        'Data' => 'getData',
     ];
 
     public function getResourceId()
@@ -27,10 +30,24 @@ class ActivityLogEvent extends Omeka_Record_AbstractRecord implements Zend_Acl_R
         return $user;
     }
 
+    public function getRecord()
+    {
+        $record = null;
+        if ($this->resource) {
+            $record = $this->getTable($this->resource)->find($this->resource_identifier);
+        }
+        return $record;
+    }
+
     public function getDateTime()
     {
         $dateTime = DateTime::createFromFormat('U.u', sprintf('%f', $this->timestamp));
         $dateTime->setTimezone(new DateTimeZone(date_default_timezone_get()));
         return $dateTime;
+    }
+
+    public function getData()
+    {
+        return json_decode($this->data, true);
     }
 }
