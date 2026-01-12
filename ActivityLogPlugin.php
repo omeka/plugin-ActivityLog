@@ -72,39 +72,88 @@ SQL
     public function hookAfterSaveRecord($args)
     {
         $record = $args['record'];
-        $post = $args['post'];
+        $recordName = get_class($record);
+        $data = $args['post'];
         $insert = $args['insert'];
 
-        if ($this->recordIsExcluded($record)) {
-            return;
+        // Provide data about the resource (if post not available).
+        switch ($recordName) {
+            case 'Element':
+            case 'ElementText':
+            case 'ItemTypesElements':
+            case 'SearchText':
+                // Exclude certain records from the log.
+                return;
+            case 'ItemType':
+                $elements = [];
+                foreach ($record->Elements as $element) {
+                    $elements[] = [
+                        'element_set_id' => $element->element_set_id,
+                        'order' => $element->order,
+                        'name' => $element->name,
+                        'description' => $element->description,
+                        'comment' => $element->comment,
+                    ];
+                }
+                $data = [
+                    'name' => $record->name,
+                    'description' => $record->description,
+                    'elements' => $elements,
+                ];
+                break;
+            default:
+                // @todo: Provide a hook for other plugin to provide more data.
+                break;
         }
 
         activity_log_log_event(
-            $insert ? 'insert' : 'update',
-            get_class($record),
+            sprintf('after_%s_record', $insert ? 'insert' : 'update'),
+            $recordName,
             $record->id,
-            json_encode($post)
+            json_encode($data)
         );
     }
 
     public function hookAfterDeleteRecord($args)
     {
         $record = $args['record'];
+        $recordName = get_class($record);
+        $data = null;
 
         // Do not attempt to log after ActivityLog is uninstalled.
         if ('ActivityLog' === $record->name) {
             return;
         }
 
-        if ($this->recordIsExcluded($record)) {
-            return;
+        // Provide data about the resource.
+        switch ($recordName) {
+            case 'Element':
+            case 'ElementText':
+            case 'ItemTypesElements':
+            case 'SearchText':
+                // Exclude certain records from the log.
+                return;
+            case 'Collection':
+            case 'Item':
+            case 'File':
+                $data = ['title' => $record->getDisplayTitle()];
+                break;
+            case 'ItemType':
+                $data = [
+                    'name' => $record->name,
+                    'description' => $record->description,
+                ];
+                break;
+            default:
+                // @todo: Provide a hook for other plugin to provide more data.
+                break;
         }
 
         activity_log_log_event(
-            'delete',
-            get_class($record),
+            'after_delete_record',
+            $recordName,
             $record->id,
-            null
+            json_encode($data)
         );
     }
 
@@ -124,12 +173,12 @@ SQL
         $record = $event->Record;
 
         // Add insert, update, and delete event messages.
-        if (in_array($event->event, ['insert', 'update', 'delete'])) {
-            if ('insert' === $event->event) {
+        if (in_array($event->event, ['after_insert_record', 'after_update_record', 'after_delete_record'])) {
+            if ('after_insert_record' === $event->event) {
                 $messages[] = sprintf(__('Created a "%s" record'), $event->resource);
-            } else if ('update' === $event->event) {
+            } else if ('after_update_record' === $event->event) {
                 $messages[] = sprintf(__('Updated a "%s" record'), $event->resource);
-            } else if ('delete' === $event->event) {
+            } else if ('after_delete_record' === $event->event) {
                 $messages[] = sprintf(__('Deleted a "%s" record'), $event->resource);
             }
             $messages[] = sprintf(__('ID: %s'), $event->resource_identifier);
@@ -137,19 +186,8 @@ SQL
                 $messages[] = link_to($record, null, __('View record'));
             }
         }
-        return $messages;
-    }
 
-    /**
-     * Exclude this record from the log?
-     *
-     * @param Omeka_Record_AbstractRecord $record
-     * @return bool
-     */
-    protected function recordIsExcluded($record)
-    {
-        $excludedRecords = ['ElementText', 'SearchText'];
-        return in_array(get_class($record), $excludedRecords);
+        return $messages;
     }
 }
 
