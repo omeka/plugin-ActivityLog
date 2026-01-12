@@ -2,6 +2,7 @@
 echo head(['title' => __('Activity Log Events'), 'bodyclass' => 'browse']);
 $sortLinks = [
     __('ID') => 'id',
+    __('Messages') => null,
     __('Date') => 'timestamp',
     __('User') => null,
     __('IP') => null,
@@ -22,26 +23,25 @@ $sortLinks = [
         </thead>
         <tbody>
             <?php foreach (loop('ActivityLogEvent') as $event): ?>
-            <?php
-            $user = $event->User;
-            $record = $event->Record;
-            $resourceText = [$event->resource];
-            if ($event->resource_identifier) {
-                $resourceText[] = sprintf(__('ID: %s'), $event->resource_identifier);
-            }
-            if ($record) {
-                $resourceText[] = link_to($record, null, __('View resource'));
-            }
-            ?>
             <tr>
-                <td><?php echo $event->id; ?></td>
+                <td><?php echo link_to($event, null, $event->id); ?></td>
+                <td>
+                    <ul>
+                        <?php foreach ($event->Messages as $message): ?>
+                        <li><?php echo $message; ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </td>
                 <td><?php echo $event->DateTime->format('Y-m-d<\b\r>H:i:s.v'); ?></td>
-                <td><?php echo $user
-                    ? sprintf('%s<br>%s', link_to($user, 'edit', $user->username, ['class'=>'edit']), $user->role)
-                    : sprintf('[%s]', __('unknown')); ?></td>
+                <td><?php
+                    $user = $event->User;
+                    echo $user
+                        ? sprintf('%s<br>%s', link_to($user, 'edit', $user->username, ['class'=>'edit']), $user->role)
+                        : sprintf('[%s]', __('unknown')); ?>
+                </td>
                 <td><?php echo $event->ip; ?></td>
                 <td><?php echo $event->event; ?></td>
-                <td><?php echo implode('<br>', $resourceText); ?></td>
+                <td><?php echo $event->resource; ?></td>
             </tr>
             <?php endforeach; ?>
         </tbody>

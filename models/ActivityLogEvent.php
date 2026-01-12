@@ -14,6 +14,7 @@ class ActivityLogEvent extends Omeka_Record_AbstractRecord implements Zend_Acl_R
         'Record' => 'getRecord',
         'DateTime' => 'getDateTime',
         'Data' => 'getData',
+        'Messages' => 'getMessages',
     ];
 
     public function getResourceId()
@@ -49,5 +50,20 @@ class ActivityLogEvent extends Omeka_Record_AbstractRecord implements Zend_Acl_R
     public function getData()
     {
         return json_decode($this->data, true);
+    }
+
+    public function getMessages()
+    {
+        return apply_filters('activity_log_event_messages', [], ['event' => $this]);
+    }
+
+    public function getRecordUrl($action = 'show')
+    {
+        return url(array(
+            'module' => 'activity-log',
+            'controller' => 'events',
+            'action' => $action,
+            'id' => $this->id
+        ));
     }
 }

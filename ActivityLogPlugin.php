@@ -13,6 +13,7 @@ class ActivityLogPlugin extends Omeka_Plugin_AbstractPlugin
 
     protected $_filters = array(
         'admin_navigation_main',
+        'activity_log_event_messages',
     );
 
     public function hookInstall()
@@ -78,17 +79,8 @@ SQL
             return;
         }
 
-        // Resolve to a specific event name. This allows us to use the generic
-        // "after_save_record" hook to unambiguously log insert and update
-        // events for all records.
-        $event = sprintf(
-            '%s_%s',
-            $insert ? 'insert' : 'update',
-            Inflector::underscore(get_class($record))
-        );
-
         activity_log_log_event(
-            $event,
+            $insert ? 'insert' : 'update',
             get_class($record),
             $record->id,
             json_encode($post)
@@ -99,17 +91,17 @@ SQL
     {
         $record = $args['record'];
 
+        // Do not attempt to log after ActivityLog is uninstalled.
+        if ('ActivityLog' === $record->name) {
+            return;
+        }
+
         if ($this->recordIsExcluded($record)) {
             return;
         }
 
-        // Resolve to a specific event name. This allows us to use the generic
-        // "after_delete_record" hook to unambiguously log delete events for all
-        // records.
-        $event = sprintf('delete_%s', Inflector::underscore(get_class($record)));
-
         activity_log_log_event(
-            $event,
+            'delete',
             get_class($record),
             $record->id,
             null
@@ -124,6 +116,28 @@ SQL
             'resource' => ('ActivityLog_Events'),
         ];
         return $nav;
+    }
+
+    public function filterActivityLogEventMessages($messages, $args)
+    {
+        $event = $args['event'];
+        $record = $event->Record;
+
+        // Add insert, update, and delete event messages.
+        if (in_array($event->event, ['insert', 'update', 'delete'])) {
+            if ('insert' === $event->event) {
+                $messages[] = sprintf(__('Created a "%s" record'), $event->resource);
+            } else if ('update' === $event->event) {
+                $messages[] = sprintf(__('Updated a "%s" record'), $event->resource);
+            } else if ('delete' === $event->event) {
+                $messages[] = sprintf(__('Deleted a "%s" record'), $event->resource);
+            }
+            $messages[] = sprintf(__('ID: %s'), $event->resource_identifier);
+            if ($record) {
+                $messages[] = link_to($record, null, __('View record'));
+            }
+        }
+        return $messages;
     }
 
     /**
