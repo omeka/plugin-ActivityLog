@@ -24,7 +24,7 @@ $sortLinks = [
         <tbody>
             <?php foreach (loop('ActivityLogEvent') as $event): ?>
             <tr>
-                <td><?php echo link_to($event, null, $event->id); ?></td>
+                <td><?php echo $event->id; ?></td>
                 <td>
                     <ul>
                         <?php foreach ($event->Messages as $message): ?>

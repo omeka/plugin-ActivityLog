@@ -13,16 +13,8 @@ class ActivityLogPlugin extends Omeka_Plugin_AbstractPlugin
 
     protected $_filters = array(
         'admin_navigation_main',
-        'activity_log_record_data',
         'activity_log_event_messages',
     );
-
-    protected $_excludeRecords = [
-        'Element',
-        'ElementText',
-        'ItemTypesElements',
-        'SearchText',
-    ];
 
     public function hookInstall()
     {
@@ -83,20 +75,11 @@ SQL
         $recordName = get_class($record);
         $insert = $args['insert'];
 
-        if (in_array($recordName, $this->_excludeRecords)) {
-            // Exclude certain records from the log.
-            return;
-        }
-
-        // Set the POST as the event data. If there is no POST, attempt to get
-        // the event data via the "activity_log_record_data" filter.
-        $data = $args['post'] ?: apply_filters('activity_log_record_data', null, ['record' => $record]);
-
         activity_log_log_event(
             sprintf('after_%s_record', $insert ? 'insert' : 'update'),
             $recordName,
             $record->id,
-            json_encode($data)
+            json_encode($record)
         );
     }
 
@@ -109,20 +92,12 @@ SQL
             // Do not attempt to log after ActivityLog is uninstalled.
             return;
         }
-        if (in_array($recordName, $this->_excludeRecords)) {
-            // Exclude certain records from the log.
-            return;
-        }
-
-        // Attempt to get the event data via the "activity_log_record_data"
-        // filter.
-        $data = apply_filters('activity_log_record_data', null, ['record' => $record]);
 
         activity_log_log_event(
             'after_delete_record',
             $recordName,
             $record->id,
-            json_encode($data)
+            json_encode($record)
         );
     }
 
@@ -136,93 +111,38 @@ SQL
         return $nav;
     }
 
-    public function filterActivityLogRecordData($data, $args)
-    {
-        $record = $args['record'];
-        $recordName = get_class($record);
-
-        // Provide data about the resource.
-        switch ($recordName) {
-            case 'Item':
-                $data = [
-                    'title' => $record->getDisplayTitle(),
-                    'item_type_id' => $record->item_type_id,
-                    'collection_id' => $record->collection_id,
-                    'featured' => $record->featured,
-                    'public' => $record->public,
-                    'added' => $record->added,
-                    'modified' => $record->modified,
-                    'owner_id' => $record->owner_id,
-                ];
-                break;
-            case 'Collection':
-                $data = [
-                    'title' => $record->getDisplayTitle(),
-                    'public' => $record->public,
-                    'featured' => $record->featured,
-                    'added' => $record->added,
-                    'modified' => $record->modified,
-                    'owner_id' => $record->owner_id,
-                ];
-                break;
-            case 'File':
-                $data = [
-                    'title' => $record->getDisplayTitle(),
-                    'item_id' => $record->item_id,
-                    'order' => $record->order,
-                    'filename' => $record->filename,
-                    'original_filename' => $record->original_filename,
-                    'size' => $record->size,
-                    'authentication' => $record->authentication,
-                    'mime_type' => $record->mime_type,
-                    'type_os' => $record->type_os,
-                    'has_derivative_image' => $record->has_derivative_image,
-                    'added' => $record->added,
-                    'modified' => $record->modified,
-                    'stored' => $record->stored,
-                    'metadata' => $record->metadata,
-                    'alt_text' => $record->alt_text,
-                ];
-                break;
-            case 'ItemType':
-                $elements = [];
-                foreach ($record->Elements as $element) {
-                    $elements[] = [
-                        'element_set_id' => $element->element_set_id,
-                        'order' => $element->order,
-                        'name' => $element->name,
-                        'description' => $element->description,
-                        'comment' => $element->comment,
-                    ];
-                }
-                $data = [
-                    'name' => $record->name,
-                    'description' => $record->description,
-                    'elements' => $elements,
-                ];
-                break;
-        }
-
-        return $data;
-    }
-
     public function filterActivityLogEventMessages($messages, $args)
     {
         $event = $args['event'];
-        $record = $event->Record;
 
-        // Add insert, update, and delete event messages.
-        if (in_array($event->event, ['after_insert_record', 'after_update_record', 'after_delete_record'])) {
-            if ('after_insert_record' === $event->event) {
-                $messages[] = sprintf(__('Created a "%s" record'), $event->resource);
-            } else if ('after_update_record' === $event->event) {
-                $messages[] = sprintf(__('Updated a "%s" record'), $event->resource);
-            } else if ('after_delete_record' === $event->event) {
-                $messages[] = sprintf(__('Deleted a "%s" record'), $event->resource);
-            }
-            $messages[] = sprintf(__('ID: %s'), $event->resource_identifier);
-            if ($record) {
-                $messages[] = link_to($record, null, __('View record'));
+        $eventNames = ['after_insert_record', 'after_update_record', 'after_delete_record'];
+        if (!in_array($event->event, $eventNames)) {
+            return $messages;
+        }
+
+        // This filter will only add event messages for records that were saved
+        // or deleted via Omeka_Record_AbstractRecord.
+        if ('after_insert_record' === $event->event) {
+            $messages[] = sprintf(__('Created a "%s" record'), $event->resource);
+        } else if ('after_update_record' === $event->event) {
+            $messages[] = sprintf(__('Updated a "%s" record'), $event->resource);
+        } else if ('after_delete_record' === $event->event) {
+            $messages[] = sprintf(__('Deleted a "%s" record'), $event->resource);
+        }
+
+        $messages[] = sprintf(__('ID: %s'), $event->resource_identifier);
+
+        $record = $event->Record;
+        if ($record) {
+            switch ($event->resource) {
+                case 'Item':
+                case 'Collection':
+                case 'File':
+                case 'ItemType':
+                case 'Exhibit':
+                case 'ExhibitPage':
+                    $messages[] = link_to($record, null, __('View record'));
+                    break;
             }
         }
 
