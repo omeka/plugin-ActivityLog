@@ -11,6 +11,22 @@ $sortLinks = [
 ];
 ?>
 
+<form id="event-filter-form">
+    <?php
+    $table = get_db()->getTable('ActivityLogEvent');
+    echo $this->formInput('id', $_GET['id'] ?? null, ['placeholder' => 'Enter an event ID']);
+    echo $this->formSelect('event', $_GET['event'] ?? null, [], $table->getEventValueOptions());
+    echo $this->formSelect('resource', $_GET['resource'] ?? null, [], $table->getResourceValueOptions());
+    echo $this->formInput('resource_identifier', $_GET['resource_identifier'] ?? null, ['placeholder' => 'Enter a resource ID']);
+    // @todo: user
+    // @todo: user role
+    // @todo: IP
+    // @todo: date from
+    // @todo: date before
+    echo $this->formButton(null, __('Apply Filters'), ['type' => 'submit']);
+    ?>
+</form>
+
 <?php if ($total_results): ?>
 
 <?php echo pagination_links(['attributes' => ['aria-label' => __('Top pagination')]]); ?>
@@ -54,3 +70,14 @@ $sortLinks = [
 <?php echo __('No events found.'); ?>
 
 <?php endif; ?>
+
+<script>
+// Do not submit filters with empty values because they would always return no results.
+document.getElementById('event-filter-form').addEventListener('submit', function(e) {
+    for (const control of this.elements) {
+        if (control.value === '') {
+            control.disabled = true;
+        }
+    }
+});
+</script>
