@@ -31,4 +31,4 @@ $user = $activity_log_event->User;
     <dd><?php echo $activity_log_event->resource_identifier; ?></dd>
 </dl>
 <h3 id="event-data"><?php echo __('Data'); ?></h3>
-<pre style="font-size: 12px;"><?php echo json_encode($activity_log_event->Data, JSON_PRETTY_PRINT); ?></pre>
+<pre style="font-size: 12px;"><?php echo htmlspecialchars(json_encode($activity_log_event->Data, JSON_PRETTY_PRINT)); ?></pre>

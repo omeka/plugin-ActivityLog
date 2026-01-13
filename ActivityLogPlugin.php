@@ -13,8 +13,16 @@ class ActivityLogPlugin extends Omeka_Plugin_AbstractPlugin
 
     protected $_filters = array(
         'admin_navigation_main',
+        'activity_log_record_data',
         'activity_log_event_messages',
     );
+
+    protected $_excludeRecords = [
+        'Element',
+        'ElementText',
+        'ItemTypesElements',
+        'SearchText',
+    ];
 
     public function hookInstall()
     {
@@ -73,38 +81,16 @@ SQL
     {
         $record = $args['record'];
         $recordName = get_class($record);
-        $data = $args['post'];
         $insert = $args['insert'];
 
-        // Provide data about the resource (if post not available).
-        switch ($recordName) {
-            case 'Element':
-            case 'ElementText':
-            case 'ItemTypesElements':
-            case 'SearchText':
-                // Exclude certain records from the log.
-                return;
-            case 'ItemType':
-                $elements = [];
-                foreach ($record->Elements as $element) {
-                    $elements[] = [
-                        'element_set_id' => $element->element_set_id,
-                        'order' => $element->order,
-                        'name' => $element->name,
-                        'description' => $element->description,
-                        'comment' => $element->comment,
-                    ];
-                }
-                $data = [
-                    'name' => $record->name,
-                    'description' => $record->description,
-                    'elements' => $elements,
-                ];
-                break;
-            default:
-                // @todo: Provide a hook for other plugin to provide more data.
-                break;
+        if (in_array($recordName, $this->_excludeRecords)) {
+            // Exclude certain records from the log.
+            return;
         }
+
+        // Set the POST as the event data. If there is no POST, attempt to get
+        // the event data via the "activity_log_record_data" filter.
+        $data = $args['post'] ?: apply_filters('activity_log_record_data', null, ['record' => $record]);
 
         activity_log_log_event(
             sprintf('after_%s_record', $insert ? 'insert' : 'update'),
@@ -118,36 +104,19 @@ SQL
     {
         $record = $args['record'];
         $recordName = get_class($record);
-        $data = null;
 
-        // Do not attempt to log after ActivityLog is uninstalled.
         if ('ActivityLog' === $record->name) {
+            // Do not attempt to log after ActivityLog is uninstalled.
+            return;
+        }
+        if (in_array($recordName, $this->_excludeRecords)) {
+            // Exclude certain records from the log.
             return;
         }
 
-        // Provide data about the resource.
-        switch ($recordName) {
-            case 'Element':
-            case 'ElementText':
-            case 'ItemTypesElements':
-            case 'SearchText':
-                // Exclude certain records from the log.
-                return;
-            case 'Collection':
-            case 'Item':
-            case 'File':
-                $data = ['title' => $record->getDisplayTitle()];
-                break;
-            case 'ItemType':
-                $data = [
-                    'name' => $record->name,
-                    'description' => $record->description,
-                ];
-                break;
-            default:
-                // @todo: Provide a hook for other plugin to provide more data.
-                break;
-        }
+        // Attempt to get the event data via the "activity_log_record_data"
+        // filter.
+        $data = apply_filters('activity_log_record_data', null, ['record' => $record]);
 
         activity_log_log_event(
             'after_delete_record',
@@ -165,6 +134,76 @@ SQL
             'resource' => ('ActivityLog_Events'),
         ];
         return $nav;
+    }
+
+    public function filterActivityLogRecordData($data, $args)
+    {
+        $record = $args['record'];
+        $recordName = get_class($record);
+
+        // Provide data about the resource.
+        switch ($recordName) {
+            case 'Item':
+                $data = [
+                    'title' => $record->getDisplayTitle(),
+                    'item_type_id' => $record->item_type_id,
+                    'collection_id' => $record->collection_id,
+                    'featured' => $record->featured,
+                    'public' => $record->public,
+                    'added' => $record->added,
+                    'modified' => $record->modified,
+                    'owner_id' => $record->owner_id,
+                ];
+                break;
+            case 'Collection':
+                $data = [
+                    'title' => $record->getDisplayTitle(),
+                    'public' => $record->public,
+                    'featured' => $record->featured,
+                    'added' => $record->added,
+                    'modified' => $record->modified,
+                    'owner_id' => $record->owner_id,
+                ];
+                break;
+            case 'File':
+                $data = [
+                    'title' => $record->getDisplayTitle(),
+                    'item_id' => $record->item_id,
+                    'order' => $record->order,
+                    'filename' => $record->filename,
+                    'original_filename' => $record->original_filename,
+                    'size' => $record->size,
+                    'authentication' => $record->authentication,
+                    'mime_type' => $record->mime_type,
+                    'type_os' => $record->type_os,
+                    'has_derivative_image' => $record->has_derivative_image,
+                    'added' => $record->added,
+                    'modified' => $record->modified,
+                    'stored' => $record->stored,
+                    'metadata' => $record->metadata,
+                    'alt_text' => $record->alt_text,
+                ];
+                break;
+            case 'ItemType':
+                $elements = [];
+                foreach ($record->Elements as $element) {
+                    $elements[] = [
+                        'element_set_id' => $element->element_set_id,
+                        'order' => $element->order,
+                        'name' => $element->name,
+                        'description' => $element->description,
+                        'comment' => $element->comment,
+                    ];
+                }
+                $data = [
+                    'name' => $record->name,
+                    'description' => $record->description,
+                    'elements' => $elements,
+                ];
+                break;
+        }
+
+        return $data;
     }
 
     public function filterActivityLogEventMessages($messages, $args)
