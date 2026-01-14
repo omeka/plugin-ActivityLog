@@ -14,17 +14,18 @@ $sortLinks = [
 <form id="event-filter-form">
     <?php
     $table = get_db()->getTable('ActivityLogEvent');
-    echo $this->formInput('id', $_GET['id'] ?? null, ['placeholder' => 'Enter an event ID']);
+    echo $this->formInput('id', $_GET['id'] ?? null, ['placeholder' => __('Enter an event ID')]);
     echo $this->formSelect('event', $_GET['event'] ?? null, [], $table->getEventValueOptions());
     echo $this->formSelect('resource', $_GET['resource'] ?? null, [], $table->getResourceValueOptions());
-    echo $this->formInput('resource_identifier', $_GET['resource_identifier'] ?? null, ['placeholder' => 'Enter a resource ID']);
-    // @todo: user
-    // @todo: user role
-    // @todo: IP
-    // @todo: date from
-    // @todo: date before
+    echo $this->formInput('resource_identifier', $_GET['resource_identifier'] ?? null, ['placeholder' => __('Enter a resource ID')]);
+    echo $this->formSelect('user_id', $_GET['user_id'] ?? null, [], $table->getUserValueOptions());
+    echo $this->formSelect('user_role', $_GET['user_role'] ?? null, [], $table->getUserRoleValueOptions());
+    echo $this->formInput('ip', $_GET['ip'] ?? null, ['placeholder' => __('Enter an IP')]);
+    echo $this->formInput('from', $_GET['from'] ?? null, ['type' => 'date']);
+    echo $this->formInput('before', $_GET['before'] ?? null, ['type' => 'date']);
     echo $this->formButton(null, __('Apply Filters'), ['type' => 'submit']);
     ?>
+    <a class="button" href="<?php echo html_escape(current_url()); ?>"><?php echo __('Clear Filters'); ?></a>
 </form>
 
 <?php if ($total_results): ?>
