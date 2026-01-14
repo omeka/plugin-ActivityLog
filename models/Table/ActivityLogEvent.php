@@ -3,10 +3,12 @@ class Table_ActivityLogEvent extends Omeka_Db_Table
 {
     public function applySearchFilters($select, $params)
     {
+        // Apply default filters (via column names).
         parent::applySearchFilters($select, $params);
 
         $db = $this->getDb();
 
+        // Apply custom filters.
         if (isset($params['user_role'])) {
             $select->joinInner(['users' => $db->User], 'users.id = activity_log_events.user_id', []);
             $select->where('users.role = ?', $params['user_role']);
@@ -23,6 +25,11 @@ class Table_ActivityLogEvent extends Omeka_Db_Table
         }
     }
 
+    /**
+     * Get value options for a resource select element.
+     *
+     * @return array
+     */
     public function getResourceValueOptions()
     {
         $db = $this->getDb();
@@ -40,6 +47,11 @@ class Table_ActivityLogEvent extends Omeka_Db_Table
         return $valueOptions;
     }
 
+    /**
+     * Get value options for a event select element.
+     *
+     * @return array
+     */
     public function getEventValueOptions()
     {
         $db = $this->getDb();
@@ -57,6 +69,11 @@ class Table_ActivityLogEvent extends Omeka_Db_Table
         return $valueOptions;
     }
 
+    /**
+     * Get value options for a user select element.
+     *
+     * @return array
+     */
     public function getUserValueOptions()
     {
         $db = $this->getDb();
@@ -76,6 +93,11 @@ class Table_ActivityLogEvent extends Omeka_Db_Table
         return $valueOptions;
     }
 
+    /**
+     * Get value options for a user role select element.
+     *
+     * @return array
+     */
     public function getUserRoleValueOptions()
     {
         $db = $this->getDb();

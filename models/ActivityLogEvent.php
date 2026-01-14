@@ -22,6 +22,21 @@ class ActivityLogEvent extends Omeka_Record_AbstractRecord implements Zend_Acl_R
         return 'ActivityLog_Event';
     }
 
+    public function getRecordUrl($action = 'show')
+    {
+        return url(array(
+            'module' => 'activity-log',
+            'controller' => 'events',
+            'action' => $action,
+            'id' => $this->id
+        ));
+    }
+
+    /**
+     * Get the user record of this event.
+     *
+     * @return User|null
+     */
     public function getUser()
     {
         $user = null;
@@ -31,6 +46,11 @@ class ActivityLogEvent extends Omeka_Record_AbstractRecord implements Zend_Acl_R
         return $user;
     }
 
+    /**
+     * Get the resource record of this event.
+     *
+     * @return Omeka_Record_AbstractRecord|null
+     */
     public function getRecord()
     {
         $record = null;
@@ -40,6 +60,11 @@ class ActivityLogEvent extends Omeka_Record_AbstractRecord implements Zend_Acl_R
         return $record;
     }
 
+    /**
+     * Get the date/time object of this event.
+     *
+     * @return DateTime
+     */
     public function getDateTime()
     {
         $dateTime = DateTime::createFromFormat('U.u', sprintf('%f', $this->timestamp));
@@ -47,25 +72,25 @@ class ActivityLogEvent extends Omeka_Record_AbstractRecord implements Zend_Acl_R
         return $dateTime;
     }
 
+    /**
+     * Get the data of this event.
+     *
+     * @return mixed
+     */
     public function getData()
     {
         return json_decode($this->data, true);
     }
 
+    /**
+     * Get the messages of this event.
+     *
+     * @return array
+     */
     public function getMessages()
     {
         $messages = apply_filters('activity_log_event_messages', [], ['event' => $this]);
         $messages[] = link_to($this, null, __('View event details'));
         return $messages;
-    }
-
-    public function getRecordUrl($action = 'show')
-    {
-        return url(array(
-            'module' => 'activity-log',
-            'controller' => 'events',
-            'action' => $action,
-            'id' => $this->id
-        ));
     }
 }

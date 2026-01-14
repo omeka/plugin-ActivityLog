@@ -115,13 +115,14 @@ SQL
     {
         $event = $args['event'];
 
+        // This filter will only add event messages for resources that were
+        // saved or deleted via Omeka_Record_AbstractRecord.
         $eventNames = ['after_insert_record', 'after_update_record', 'after_delete_record'];
         if (!in_array($event->event, $eventNames)) {
             return $messages;
         }
 
-        // This filter will only add event messages for records that were saved
-        // or deleted via Omeka_Record_AbstractRecord.
+        // Add event description message.
         if ('after_insert_record' === $event->event) {
             $messages[] = sprintf(__('Created a "%s" record'), $event->resource);
         } else if ('after_update_record' === $event->event) {
@@ -130,10 +131,13 @@ SQL
             $messages[] = sprintf(__('Deleted a "%s" record'), $event->resource);
         }
 
+        // Add record ID message.
         $messages[] = sprintf(__('ID: %s'), $event->resource_identifier);
 
+        // Add record link message.
         $record = $event->Record;
         if ($record) {
+            // Only provide links to records that can be resolved.
             switch ($event->resource) {
                 case 'Item':
                 case 'Collection':
@@ -152,6 +156,8 @@ SQL
 
 /**
  * Log an event.
+ *
+ * Plugins can use this function in their hook handlers to add events.
  *
  * @param string $event The event name (typically the related hook name)
  * @param string $resource The resource name
