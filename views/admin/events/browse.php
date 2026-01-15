@@ -1,4 +1,6 @@
 <?php
+queue_js_file('activitylog');
+queue_css_file('activitylog');
 echo head([
     'title' => __('Activity Log Events') . ' ' . __('(%s total)', $total_results),
     'bodyclass' => 'activity-log browse',
@@ -14,24 +16,58 @@ $sortLinks = [
 ];
 ?>
 
-<form id="event-filter-form">
-    <?php
-    $table = get_db()->getTable('ActivityLogEvent');
-    echo $this->formInput('id', $_GET['id'] ?? null, ['placeholder' => __('Enter an event ID')]);
-    echo $this->formSelect('event', $_GET['event'] ?? null, [], $table->getEventValueOptions());
-    echo $this->formSelect('resource', $_GET['resource'] ?? null, [], $table->getResourceValueOptions());
-    echo $this->formInput('resource_identifier', $_GET['resource_identifier'] ?? null, ['placeholder' => __('Enter a resource ID')]);
-    echo $this->formSelect('user_id', $_GET['user_id'] ?? null, [], $table->getUserValueOptions());
-    echo $this->formSelect('user_role', $_GET['user_role'] ?? null, [], $table->getUserRoleValueOptions());
-    echo $this->formInput('ip', $_GET['ip'] ?? null, ['placeholder' => __('Enter an IP')]);
-    echo $this->formInput('from', $_GET['from'] ?? null, ['type' => 'date']);
-    echo $this->formInput('before', $_GET['before'] ?? null, ['type' => 'date']);
-    echo $this->formButton(null, __('Apply Filters'), ['type' => 'submit', 'class' => 'blue button']);
-    ?>
-    <a class="blue button" href="<?php echo html_escape(current_url()); ?>"><?php echo __('Clear Filters'); ?></a>
-</form>
-
 <?php if ($total_results): ?>
+<div role="group" id="event-filter-controls" aria-label="<?php echo __('Filter controls'); ?>">
+    <?php echo $this->formButton(null, __('Filter results'), ['id' => 'open-event-filters', 'class' => 'blue button']); ?>
+    <a class="blue button" href="<?php echo html_escape(current_url()); ?>"><?php echo __('Clear Filters'); ?></a>
+    <dialog id="event-filter-dialog" aria-labelledby="event-filter-dialog-heading">
+    <div class="modal-header">
+    <h2 id="event-filter-dialog-heading"><?php echo __('Filter events'); ?></h2>
+    <button type="button" class="modal-close" aria-label="<?php echo __('Close'); ?>"></button>
+    </div>
+    <form id="event-filter-form">
+        <?php $table = get_db()->getTable('ActivityLogEvent'); ?>
+        <label>
+            <span class="label-text"><?php echo __('Enter an event ID'); ?></span>
+            <?php echo $this->formInput('id', $_GET['id'] ?? null); ?>
+        </label>
+        <label>
+            <span class="label-text"><?php echo __('Select an event by name'); ?></span>
+            <?php echo $this->formSelect('event', $_GET['event'] ?? null, [], $table->getEventValueOptions()); ?>
+        </label>
+        <label>
+            <span class="label-text"><?php echo __('Select a resource'); ?></span>
+            <?php echo $this->formSelect('resource', $_GET['resource'] ?? null, [], $table->getResourceValueOptions()); ?>
+        </label>
+        <label>
+            <span class="label-text"><?php echo __('Enter a resource ID'); ?></span>
+            <?php echo $this->formInput('resource_identifier', $_GET['resource_identifier'] ?? null); ?>
+        </label>
+        <label>
+            <span class="label-text"><?php echo __('Select a user'); ?></span>
+            <?php echo $this->formSelect('user_id', $_GET['user_id'] ?? null, [], $table->getUserValueOptions()); ?>
+        </label>
+        <label>
+            <span class="label-text"><?php echo __('Select a user role'); ?></span>
+            <?php echo $this->formSelect('user_role', $_GET['user_role'] ?? null, [], $table->getUserRoleValueOptions()); ?>
+        </label>
+        <label>
+            <span class="label-text"><?php echo __('Enter an IP'); ?></span>
+            <?php echo $this->formInput('ip', $_GET['ip'] ?? null); ?>
+        </label>
+        <label>
+            <span class="label-text"><?php echo __('Starting on date'); ?></span>
+            <?php echo $this->formInput('from', $_GET['from'] ?? null, ['type' => 'date']); ?>
+        </label>
+        <label>
+            <span class="label-text"><?php echo __('Starting before date'); ?></span>
+            <?php echo $this->formInput('before', $_GET['before'] ?? null, ['type' => 'date']); ?>
+        </label>
+        <?php echo $this->formButton(null, __('Apply Filters'), ['type' => 'submit', 'class' => 'blue button']); ?>
+    </form>
+    </dialog>
+</div>
+
 
 <?php echo pagination_links(['attributes' => ['aria-label' => __('Top pagination')]]); ?>
 
@@ -77,14 +113,3 @@ $sortLinks = [
 <?php endif; ?>
 
 <?php echo foot(); ?>
-
-<script>
-// Do not submit filters with empty values because they would always return no results.
-document.getElementById('event-filter-form').addEventListener('submit', function(e) {
-    for (const control of this.elements) {
-        if (control.value === '') {
-            control.disabled = true;
-        }
-    }
-});
-</script>
