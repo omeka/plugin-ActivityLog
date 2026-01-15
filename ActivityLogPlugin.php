@@ -19,26 +19,25 @@ class ActivityLogPlugin extends Omeka_Plugin_AbstractPlugin
     public function hookInstall()
     {
         $db = get_db();
-        $db->query(<<<SQL
-CREATE TABLE `{$db->prefix}activity_log_events` (
-  `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
-  `user_id` int UNSIGNED DEFAULT NULL,
-  `timestamp` double NOT NULL,
-  `ip` varchar(45) DEFAULT NULL,
-  `event` varchar(255) NOT NULL,
-  `resource` varchar(255) DEFAULT NULL,
-  `resource_identifier` varchar(255) DEFAULT NULL,
-  `data` longtext,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-SQL
-        );
+        $sql = "
+        CREATE TABLE IF NOT EXISTS `$db->ActivityLogEvent` (
+            `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
+            `user_id` int UNSIGNED DEFAULT NULL,
+            `timestamp` double NOT NULL,
+            `ip` varchar(45) DEFAULT NULL,
+            `event` varchar(255) NOT NULL,
+            `resource` varchar(255) DEFAULT NULL,
+            `resource_identifier` varchar(255) DEFAULT NULL,
+            `data` longtext,
+            PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci";
+        $db->query($sql);
     }
 
     public function hookUninstall()
     {
         $db = get_db();
-        $db->query("DROP TABLE IF EXISTS `{$db->prefix}activity_log_events`");
+        $db->query("DROP TABLE IF EXISTS `$db->ActivityLogEvent`");
     }
 
     public function hookConfigForm($args)

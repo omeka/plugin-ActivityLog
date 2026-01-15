@@ -1,5 +1,8 @@
 <?php
-echo head(['title' => __('Activity Log Events'), 'bodyclass' => 'browse']);
+echo head([
+    'title' => __('Activity Log Events') . ' ' . __('(%s total)', $total_results),
+    'bodyclass' => 'activity-log browse',
+]);
 $sortLinks = [
     __('ID') => 'id',
     __('Messages') => null,
@@ -23,14 +26,15 @@ $sortLinks = [
     echo $this->formInput('ip', $_GET['ip'] ?? null, ['placeholder' => __('Enter an IP')]);
     echo $this->formInput('from', $_GET['from'] ?? null, ['type' => 'date']);
     echo $this->formInput('before', $_GET['before'] ?? null, ['type' => 'date']);
-    echo $this->formButton(null, __('Apply Filters'), ['type' => 'submit']);
+    echo $this->formButton(null, __('Apply Filters'), ['type' => 'submit', 'class' => 'blue button']);
     ?>
-    <a class="button" href="<?php echo html_escape(current_url()); ?>"><?php echo __('Clear Filters'); ?></a>
+    <a class="blue button" href="<?php echo html_escape(current_url()); ?>"><?php echo __('Clear Filters'); ?></a>
 </form>
 
 <?php if ($total_results): ?>
 
 <?php echo pagination_links(['attributes' => ['aria-label' => __('Top pagination')]]); ?>
+
 <div class="table-responsive">
     <table id="events">
         <thead>
@@ -71,6 +75,8 @@ $sortLinks = [
 <?php echo __('No events found.'); ?>
 
 <?php endif; ?>
+
+<?php echo foot(); ?>
 
 <script>
 // Do not submit filters with empty values because they would always return no results.
