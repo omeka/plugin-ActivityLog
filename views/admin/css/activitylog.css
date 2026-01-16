@@ -73,3 +73,6 @@
 #event-filter-dialog [type="submit"] {
     grid-column: 1;
 }
+
+#events tr:nth-child(even){ background-color:#f8f8f8; }
+#events tr:nth-child(odd){ background-color:#fff; }
