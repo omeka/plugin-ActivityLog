@@ -28,39 +28,39 @@ $table = get_db()->getTable('ActivityLogEvent')
         </div>
         <form id="event-filter-form">
             <label>
-                <span class="label-text"><?php echo __('Enter an event ID'); ?></span>
+                <span class="label-text"><?php echo __('Event ID'); ?></span>
                 <?php echo $this->formInput('id', $_GET['id'] ?? null); ?>
             </label>
             <label>
-                <span class="label-text"><?php echo __('Select an event by name'); ?></span>
+                <span class="label-text"><?php echo __('Event name'); ?></span>
                 <?php echo $this->formSelect('event', $_GET['event'] ?? null, [], $table->getEventValueOptions()); ?>
             </label>
             <label>
-                <span class="label-text"><?php echo __('Select a resource'); ?></span>
+                <span class="label-text"><?php echo __('Resource'); ?></span>
                 <?php echo $this->formSelect('resource', $_GET['resource'] ?? null, [], $table->getResourceValueOptions()); ?>
             </label>
             <label>
-                <span class="label-text"><?php echo __('Enter a resource ID'); ?></span>
+                <span class="label-text"><?php echo __('Resource ID'); ?></span>
                 <?php echo $this->formInput('resource_identifier', $_GET['resource_identifier'] ?? null); ?>
             </label>
             <label>
-                <span class="label-text"><?php echo __('Select a user'); ?></span>
+                <span class="label-text"><?php echo __('User'); ?></span>
                 <?php echo $this->formSelect('user_id', $_GET['user_id'] ?? null, [], $table->getUserValueOptions()); ?>
             </label>
             <label>
-                <span class="label-text"><?php echo __('Select a user role'); ?></span>
+                <span class="label-text"><?php echo __('User role'); ?></span>
                 <?php echo $this->formSelect('user_role', $_GET['user_role'] ?? null, [], $table->getUserRoleValueOptions()); ?>
             </label>
             <label>
-                <span class="label-text"><?php echo __('Enter an IP'); ?></span>
+                <span class="label-text"><?php echo __('IP'); ?></span>
                 <?php echo $this->formInput('ip', $_GET['ip'] ?? null); ?>
             </label>
             <label>
-                <span class="label-text"><?php echo __('Starting on date'); ?></span>
+                <span class="label-text"><?php echo __('From'); ?></span>
                 <?php echo $this->formInput('from', $_GET['from'] ?? null, ['type' => 'date']); ?>
             </label>
             <label>
-                <span class="label-text"><?php echo __('Starting before date'); ?></span>
+                <span class="label-text"><?php echo __('Before'); ?></span>
                 <?php echo $this->formInput('before', $_GET['before'] ?? null, ['type' => 'date']); ?>
             </label>
             <?php echo $this->formButton(null, __('Apply Filters'), ['type' => 'submit', 'class' => 'blue button']); ?>
