@@ -19,7 +19,7 @@ class ActivityLogEvent extends Omeka_Record_AbstractRecord implements Zend_Acl_R
 
     public function getResourceId()
     {
-        return 'ActivityLog_Event';
+        return 'ActivityLog_Events';
     }
 
     public function getRecordUrl($action = 'show')
