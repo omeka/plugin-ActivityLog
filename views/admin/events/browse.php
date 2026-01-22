@@ -107,7 +107,7 @@ $table = get_db()->getTable('ActivityLogEvent')
 
 <?php else: ?>
 
-<?php echo __('No events found.'); ?>
+<h2><?php echo __('No events found.'); ?></h2>
 
 <?php endif; ?>
 
