@@ -105,12 +105,12 @@ $table = get_db()->getTable('ActivityLogEvent')
     </table>
 </div>
 
-<?php echo pagination_links(['attributes' => ['aria-label' => __('Bottom pagination')]]); ?>
-
 <?php else: ?>
 
 <?php echo __('No events found.'); ?>
 
 <?php endif; ?>
+
+<?php echo pagination_links(['attributes' => ['aria-label' => __('Bottom pagination')]]); ?>
 
 <?php echo foot(); ?>
