@@ -1,10 +1,41 @@
 <?php
 queue_js_file('activitylog');
 queue_css_file('activitylog');
-echo head([
-    'title' => __('Activity Log Events') . ' ' . __('(%s total)', $total_results),
-    'bodyclass' => 'activity-log browse',
-]);
+
+$searchFilters = [];
+foreach ($_GET as $key => $value) {
+    switch ($key) {
+        case 'id':
+            $searchFilters[] = sprintf('Event ID: %s', $value);
+            break;
+        case 'event':
+            $searchFilters[] = sprintf('Event: %s', $value);
+            break;
+        case 'resource':
+            $searchFilters[] = sprintf('Resource: %s', $value);
+            break;
+        case 'resource_identifier':
+            $searchFilters[] = sprintf('Resource ID: %s', $value);
+            break;
+        case 'user_id':
+            $user = get_db()->getTable('User')->find($value);
+            $searchFilters[] = sprintf('User: %s', $user->username);
+            break;
+        case 'user_role':
+            $searchFilters[] = sprintf('User role: %s', $value);
+            break;
+        case 'ip':
+            $searchFilters[] = sprintf('IP: %s', $value);
+            break;
+        case 'from':
+            $searchFilters[] = sprintf('From: %s', $value);
+            break;
+        case 'before':
+            $searchFilters[] = sprintf('Before: %s', $value);
+            break;
+        }
+}
+
 $sortLinks = [
     __('ID') => 'id',
     __('Messages') => null,
@@ -14,8 +45,24 @@ $sortLinks = [
     __('Event Name') => 'event',
     __('Resource') => 'resource',
 ];
-$table = get_db()->getTable('ActivityLogEvent')
+
+$table = get_db()->getTable('ActivityLogEvent');
+
+echo head([
+    'title' => __('Activity Log Events') . ' ' . __('(%s total)', $total_results),
+    'bodyclass' => 'activity-log browse',
+]);
 ?>
+
+<?php if ($searchFilters): ?>
+<div id="search-filters">
+    <ul>
+        <?php foreach ($searchFilters as $searchFilter): ?>
+        <li><?php echo html_escape($searchFilter); ?></li>
+        <?php endforeach; ?>
+    </ul>
+</div>
+<?php endif; ?>
 
 <?php echo pagination_links(['attributes' => ['aria-label' => __('Top pagination')]]); ?>
 
