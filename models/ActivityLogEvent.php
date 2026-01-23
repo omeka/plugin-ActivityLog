@@ -89,8 +89,6 @@ class ActivityLogEvent extends Omeka_Record_AbstractRecord implements Zend_Acl_R
      */
     public function getMessages()
     {
-        $messages = apply_filters('activity_log_event_messages', [], ['event' => $this]);
-        $messages[] = link_to($this, null, __('View event details'));
-        return $messages;
+        return apply_filters('activity_log_event_messages', [], ['event' => $this]);
     }
 }

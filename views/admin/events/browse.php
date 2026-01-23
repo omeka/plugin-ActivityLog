@@ -134,6 +134,7 @@ echo head([
                         <?php foreach ($event->Messages as $message): ?>
                         <li><?php echo $message; ?></li>
                         <?php endforeach; ?>
+                        <li><?php echo link_to($event, null, __('View event details')); ?></li>
                     </ul>
                 </td>
                 <td><?php echo $event->DateTime->format('Y-m-d<\b\r>H:i:s.v'); ?></td>
