@@ -111,7 +111,7 @@ echo head([
                 <?php echo $this->formInput('before', $_GET['before'] ?? null, ['type' => 'date']); ?>
             </label>
             <?php echo $this->formButton(null, __('Apply Filters'), ['type' => 'submit', 'class' => 'blue button']); ?>
-             <a href="<?php echo html_escape(current_url()); ?>"><?php echo __('Clear Filters'); ?></a>
+             <a class="blue button" role="button" href="<?php echo html_escape(current_url()); ?>"><?php echo __('Clear Filters'); ?></a>
         </form>
     </dialog>
 </div>
