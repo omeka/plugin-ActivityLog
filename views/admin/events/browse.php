@@ -155,7 +155,7 @@ echo head([
 
 <?php else: ?>
 
-<h2 role="status"><?php echo __('No events found.'); ?></h2>
+<h2 role="alert"><?php echo __('No events found.'); ?></h2>
 
 <?php endif; ?>
 
