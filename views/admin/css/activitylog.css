@@ -4,6 +4,7 @@
     max-width: 1000px;
     box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
     border: 0;
+    container-type: inline-size;
 }
 
 #event-filter-dialog::backdrop {
@@ -45,17 +46,27 @@
     gap: 2rem;
 }
 
+@container (width < 600px) {
+    #event-filter-dialog form {
+        gap: 1rem;
+    }
+
+    #event-filter-dialog label {
+        grid-column: 1 / 3;
+    }
+}
+
 #event-filter-dialog label {
     width: 100%;
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
     gap: .5rem;
 }
 
 #event-filter-dialog label .label-text {
     display: block;
-    width: 40%;
+    width: 30%;
+    word-break: break-word;
 }
 
 #event-filter-dialog label input[type="text"] {
@@ -76,3 +87,14 @@
 
 #events tr:nth-child(even){ background-color:#f8f8f8; }
 #events tr:nth-child(odd){ background-color:#fff; }
+
+@container (width < 360px) {
+    #event-filter-dialog label {
+        flex-wrap: wrap;
+    }
+
+    #event-filter-dialog label .label-text,
+    #event-filter-dialog label * {
+        width: 100%;
+    }
+}
