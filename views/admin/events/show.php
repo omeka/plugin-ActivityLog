@@ -32,3 +32,5 @@ $user = $activity_log_event->User;
 </dl>
 <h3 id="event-data"><?php echo __('Data'); ?></h3>
 <pre style="font-size: 12px;"><?php echo htmlspecialchars(json_encode($activity_log_event->Data, JSON_PRETTY_PRINT)); ?></pre>
+
+<?php echo foot(); ?>
