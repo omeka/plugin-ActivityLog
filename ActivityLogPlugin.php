@@ -24,7 +24,6 @@ class ActivityLogPlugin extends Omeka_Plugin_AbstractPlugin
 
     protected $_filters = [
         'admin_navigation_main',
-        'api_resources',
         'activity_log_event_messages',
     ];
 
@@ -200,16 +199,6 @@ class ActivityLogPlugin extends Omeka_Plugin_AbstractPlugin
             'resource' => 'ActivityLog_Events',
         ];
         return $nav;
-    }
-
-    public function filterApiResources($apiResources)
-    {
-        $apiResources['activity_log_events'] = [
-            'record_type' => 'ActivityLogEvent',
-            'actions' => ['get', 'index'],
-            'index_acl_resource' => 'ActivityLog_Events',
-        ];
-        return $apiResources;
     }
 
     public function filterActivityLogEventMessages($messages, $args)
