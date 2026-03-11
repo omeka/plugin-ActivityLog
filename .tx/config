@@ -1,0 +1,11 @@
+[main]
+host = https://www.transifex.com
+
+[o:omeka:p:omeka:r:plugin-activitylog]
+file_filter = languages/<lang>.po
+minimum_perc = 10
+source_file = languages/template.pot
+source_lang = en
+type = PO
+
+
