@@ -301,7 +301,7 @@ function activity_log_log_event($event, $resource, $resource_identifier, $data)
         $eventId = $db->insert('ActivityLogEvents', [
             'user_id' => current_user()->id,
             'timestamp' => microtime(true),
-            'ip' => $_SERVER['REMOTE_ADDR'],
+            'ip' => $_SERVER['REMOTE_ADDR'] ?? null,
             'event' => $event,
             'resource' => $resource,
             'resource_identifier' => $resource_identifier,
